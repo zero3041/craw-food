@@ -1,44 +1,72 @@
-import { useState } from 'react';
+import { useState } from 'react'
 
-const ProductList = ({ data }) => {
-  const [copiedId, setCopiedId] = useState(null);
+type Product = {
+  id: string | number
+  name: string
+  displayPrice: string
+  description?: string
+  image?: string
+  category?: string
+  currency?: string
+  isActive?: boolean
+  offerText?: string
+  hasDiscount?: boolean
+  oldPrice?: number
+  displayOldPrice?: string
+}
+
+type RestaurantInfo = {
+  name: string
+  address: string
+  rating: number
+  reviewCount: number
+  deliveryTime: number
+  minimumOrder: string
+}
+
+import type { ViewProductList } from '@/types/view'
+
+type ProductListData = ViewProductList
+
+type Props = {
+  data: ProductListData
+}
+
+const ProductList = ({ data }: Props) => {
+  const [copiedId, setCopiedId] = useState<string | number | null>(null)
 
   if (!data || !data.products || data.products.length === 0) {
-    return null;
+    return null
   }
 
-  const { products, restaurantInfo, currency } = data;
+  const { products, restaurantInfo, currency } = data
 
-  const copyToClipboard = async (text, id) => {
+  const copyToClipboard = async (text: string, id: string | number) => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
+      await navigator.clipboard.writeText(text)
+      setCopiedId(id)
+      setTimeout(() => setCopiedId(null), 2000)
     } catch (err) {
-      console.error('Failed to copy: ', err);
+      console.error('Failed to copy: ', err)
     }
-  };
+  }
 
-  const formatPrice = (displayPrice) => {
-    // Remove dots and currency symbols, keep only numbers
-    return displayPrice.replace(/[.,₫đ\s]/g, '');
-  };
+  const formatPrice = (displayPrice: string) => {
+    return displayPrice.replace(/[.,₫đ\s]/g, '')
+  }
 
-  const copyProductInfo = (product) => {
-    const text = `${product.name}\t${formatPrice(product.displayPrice)}`;
-    copyToClipboard(text, product.id);
-  };
+  const copyProductInfo = (product: Product) => {
+    const text = `${product.name}\t${formatPrice(product.displayPrice)}`
+    copyToClipboard(text, product.id)
+  }
 
   const copyAllProducts = () => {
-    const allText = products
-      .map(product => `${product.name}\t${formatPrice(product.displayPrice)}`)
-      .join('\n');
-    copyToClipboard(allText, 'all');
-  };
+    const allText = products.map((product) => `${product.name}\t${formatPrice(product.displayPrice)}`).join('\n')
+    copyToClipboard(allText, 'all')
+  }
 
   return (
     <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl shadow-2xl overflow-hidden">
-      {/* Premium Restaurant Header */}
       <div className="bg-gradient-to-r from-emerald-500/20 via-cyan-500/20 to-purple-500/20 backdrop-blur-sm p-8 border-b border-white/10">
         <div className="flex items-center space-x-6">
           <div className="relative">
@@ -52,9 +80,7 @@ const ProductList = ({ data }) => {
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-3xl font-black text-white mb-2">
-              {restaurantInfo.name}
-            </h3>
+            <h3 className="text-3xl font-black text-white mb-2">{restaurantInfo.name}</h3>
             <p className="text-white/70 text-lg mb-3">{restaurantInfo.address}</p>
             <div className="flex flex-wrap gap-3">
               {restaurantInfo.rating > 0 && (
@@ -81,16 +107,12 @@ const ProductList = ({ data }) => {
         </div>
       </div>
 
-      {/* Action Bar */}
       <div className="backdrop-blur-sm bg-white/5 px-8 py-6 border-b border-white/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
-              <button
-                onClick={copyAllProducts}
-                className="relative bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center space-x-3 shadow-xl transform hover:scale-105"
-              >
+              <button onClick={copyAllProducts} className="relative bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center space-x-3 shadow-xl transform hover:scale-105">
                 {copiedId === 'all' ? (
                   <>
                     <div className="w-6 h-6 bg-white/20 rounded-xl flex items-center justify-center">
@@ -122,13 +144,12 @@ const ProductList = ({ data }) => {
         </div>
       </div>
 
-      {/* Premium Table Header */}
       <div className="backdrop-blur-sm bg-gradient-to-r from-slate-500/10 to-gray-500/10 px-8 py-6 border-b border-white/10">
         <div className="grid grid-cols-2 gap-8">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg">
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
               </svg>
             </div>
             <span className="text-xl font-black text-white">Product Name</span>
@@ -145,59 +166,42 @@ const ProductList = ({ data }) => {
         </div>
       </div>
 
-      {/* Products List */}
       <div className="max-h-96 overflow-y-auto">
         {products.map((product, index) => (
           <div
             key={product.id}
             onClick={() => copyProductInfo(product)}
-            className={`group relative grid grid-cols-2 gap-8 px-8 py-6 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-all duration-300 ${
-              index % 2 === 0 ? 'bg-white/[0.02]' : 'bg-white/[0.05]'
-            } hover:shadow-xl`}
+            className={`group relative grid grid-cols-2 gap-8 px-8 py-6 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-all duration-300 ${index % 2 === 0 ? 'bg-white/[0.02]' : 'bg-white/[0.05]'} hover:shadow-xl`}
           >
-            {/* Hover Effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-cyan-400/0 to-purple-400/0 group-hover:from-emerald-400/5 group-hover:via-cyan-400/5 group-hover:to-purple-400/5 transition-all duration-500 rounded-2xl"></div>
-            
-            {/* Product Name Column */}
             <div className="relative flex items-center space-x-4">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 via-cyan-400 to-purple-400 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg">
-                  {index + 1}
-                </div>
+                <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 via-cyan-400 to-purple-400 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg">{index + 1}</div>
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-white group-hover:text-emerald-300 transition-colors duration-300 text-lg truncate">
-                  {product.name}
-                </h4>
+                <h4 className="font-bold text-white group-hover:text-emerald-300 transition-colors duration-300 text-lg truncate">{product.name}</h4>
                 {product.description && (
-                  <p className="text-white/60 text-sm mt-1 line-clamp-2 group-hover:text-white/80 transition-colors duration-300">
-                    {product.description}
-                  </p>
+                  <p className="text-white/60 text-sm mt-1 line-clamp-2 group-hover:text-white/80 transition-colors duration-300">{product.description}</p>
                 )}
-                {product.hasDiscount && product.offerText && (
+                {product.hasDiscount && product.displayOldPrice && (
                   <div className="mt-2">
                     <span className="inline-flex items-center space-x-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
                       <span>🔥</span>
-                      <span>{product.offerText}</span>
+                      <span>{product.offerText || 'Offer'}</span>
                     </span>
                   </div>
                 )}
               </div>
             </div>
-            
-            {/* Price Column */}
+
             <div className="relative flex flex-col items-end justify-center space-y-2">
               <div className="text-right">
-                <div className="text-2xl font-black text-white group-hover:text-emerald-300 transition-colors duration-300">
-                  {formatPrice(product.displayPrice)}
-                </div>
-                {product.hasDiscount && product.oldPrice !== product.price && (
-                  <div className="text-sm text-white/50 line-through">
-                    {formatPrice(product.displayOldPrice)}
-                  </div>
+                <div className="text-2xl font-black text-white group-hover:text-emerald-300 transition-colors duration-300">{formatPrice(product.displayPrice)}</div>
+                {product.hasDiscount && product.displayOldPrice && (
+                  <div className="text-sm text-white/50 line-through">{formatPrice(product.displayOldPrice)}</div>
                 )}
               </div>
-              
+
               {copiedId === product.id && (
                 <div className="flex items-center space-x-2 text-green-400 text-sm font-bold animate-pulse">
                   <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
@@ -213,7 +217,6 @@ const ProductList = ({ data }) => {
         ))}
       </div>
 
-      {/* Premium Footer Instructions */}
       <div className="backdrop-blur-sm bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 p-8 border-t border-white/10">
         <div className="flex items-start space-x-6">
           <div className="w-16 h-16 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-3xl flex items-center justify-center shadow-2xl flex-shrink-0">
@@ -256,7 +259,7 @@ const ProductList = ({ data }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ProductList; 
+export default ProductList 

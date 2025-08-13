@@ -1,87 +1,82 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react'
 
-const GrabFoodProductList = ({ data }) => {
-  const [copiedId, setCopiedId] = useState(null);
-  const [filterDuplicates, setFilterDuplicates] = useState(false);
+import type { GrabExtractedMenuItem, GrabRestaurantExtractedInfo } from '@/types/grab'
 
-  if (!data || !data.menuItems || data.menuItems.length === 0) {
-    return null;
+type MenuItem = GrabExtractedMenuItem
+
+type Data = GrabRestaurantExtractedInfo
+
+type Props = { data: Data }
+
+const GrabFoodProductList = ({ data }: Props) => {
+  const [copiedId, setCopiedId] = useState<string | number | null>(null)
+  const [filterDuplicates, setFilterDuplicates] = useState(false)
+
+  const hasMenu = !!data && Array.isArray(data.menuItems) && data.menuItems.length > 0
+
+  const menuItems = data?.menuItems ?? []
+  const { name, address, rating, eta, distanceInKm, estimatedDeliveryFee } = data || ({} as any)
+
+  const filteredMenuItems = useMemo(() => {
+    if (!filterDuplicates) return menuItems
+    const uniqueItems: MenuItem[] = []
+    const seenNames = new Set<string>()
+    menuItems.forEach((item) => {
+      const normalizedName = (item.name || '').toLowerCase().trim()
+      if (!seenNames.has(normalizedName)) {
+        seenNames.add(normalizedName)
+        uniqueItems.push(item)
+      }
+    })
+    return uniqueItems
+  }, [menuItems, filterDuplicates])
+
+  const duplicateCount = useMemo(() => {
+    if (!filterDuplicates) return 0
+    const seenNames = new Set<string>()
+    let duplicates = 0
+    menuItems.forEach((item) => {
+      const normalizedName = (item.name || '').toLowerCase().trim()
+      if (seenNames.has(normalizedName)) duplicates++
+      else seenNames.add(normalizedName)
+    })
+    return duplicates
+  }, [menuItems, filterDuplicates])
+
+  const copyToClipboard = async (text: string, id: string | number) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedId(id)
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch (err) {
+      console.error('Failed to copy: ', err)
+    }
   }
 
-  const { menuItems, name, address, rating, eta, distanceInKm, estimatedDeliveryFee } = data;
+  const formatPrice = (priceInMinorUnit: number) => {
+    if (!priceInMinorUnit) return 'N/A'
+    return priceInMinorUnit.toString()
+  }
 
-  // Filter out duplicate products based on name
-  const filteredMenuItems = useMemo(() => {
-    if (!filterDuplicates) return menuItems;
-    
-    const uniqueItems = [];
-    const seenNames = new Set();
-    
-    menuItems.forEach(item => {
-      const normalizedName = item.name.toLowerCase().trim();
-      if (!seenNames.has(normalizedName)) {
-        seenNames.add(normalizedName);
-        uniqueItems.push(item);
-      }
-    });
-    
-    return uniqueItems;
-  }, [menuItems, filterDuplicates]);
-
-  // Count duplicates
-  const duplicateCount = useMemo(() => {
-    if (!filterDuplicates) return 0;
-    
-    const seenNames = new Set();
-    let duplicates = 0;
-    
-    menuItems.forEach(item => {
-      const normalizedName = item.name.toLowerCase().trim();
-      if (seenNames.has(normalizedName)) {
-        duplicates++;
-      } else {
-        seenNames.add(normalizedName);
-      }
-    });
-    
-    return duplicates;
-  }, [menuItems, filterDuplicates]);
-
-  const copyToClipboard = async (text, id) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-    }
-  };
-
-  const formatPrice = (priceInMinorUnit) => {
-    if (!priceInMinorUnit) return 'N/A';
-    return priceInMinorUnit.toString();
-  };
-
-  const copyProductInfo = (product) => {
-    const text = `${product.name}\t${formatPrice(product.originalPrice)}`;
-    copyToClipboard(text, product.id);
-  };
+  const copyProductInfo = (product: MenuItem) => {
+    const text = `${product.name}\t${formatPrice(product.originalPrice)}`
+    copyToClipboard(text, product.id)
+  }
 
   const copyAllProducts = () => {
-    const allText = filteredMenuItems
-      .map(product => `${product.name}\t${formatPrice(product.originalPrice)}`)
-      .join('\n');
-    copyToClipboard(allText, 'all');
-  };
+    const allText = filteredMenuItems.map((product) => `${product.name}\t${formatPrice(product.originalPrice)}`).join('\n')
+    copyToClipboard(allText, 'all')
+  }
 
   const copyRestaurantInfo = () => {
-    const info = `Nhà hàng: ${name}\nĐịa chỉ: ${address}\nRating: ${rating}\nETA: ${eta}\nKhoảng cách: ${distanceInKm}km\nPhí giao hàng: ${estimatedDeliveryFee?.priceDisplay || 'N/A'}`;
-    copyToClipboard(info, 'restaurant');
-  };
+    const info = `Nhà hàng: ${name}\nĐịa chỉ: ${address}\nRating: ${rating}\nETA: ${eta}\nKhoảng cách: ${distanceInKm}km\nPhí giao hàng: ${estimatedDeliveryFee?.priceDisplay || 'N/A'}`
+    copyToClipboard(info, 'restaurant')
+  }
+
+  if (!hasMenu) return null
 
   return (
     <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl shadow-2xl overflow-hidden">
-      {/* Premium Restaurant Header */}
       <div className="bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-cyan-500/20 backdrop-blur-sm p-8 border-b border-white/10">
         <div className="flex items-center space-x-6">
           <div className="relative">
@@ -95,9 +90,7 @@ const GrabFoodProductList = ({ data }) => {
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-3xl font-black text-white mb-2">
-              🍽️ {name}
-            </h3>
+            <h3 className="text-3xl font-black text-white mb-2">🍽️ {name}</h3>
             <p className="text-white/70 text-lg mb-3">{address}</p>
             <div className="flex flex-wrap gap-3">
               {rating && rating !== 'N/A' && (
@@ -129,16 +122,12 @@ const GrabFoodProductList = ({ data }) => {
         </div>
       </div>
 
-      {/* Action Bar */}
       <div className="backdrop-blur-sm bg-white/5 px-8 py-6 border-b border-white/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
-              <button
-                onClick={copyAllProducts}
-                className="relative bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center space-x-3 shadow-xl transform hover:scale-105"
-              >
+              <button onClick={copyAllProducts} className="relative bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center space-x-3 shadow-xl transform hover:scale-105">
                 {copiedId === 'all' ? (
                   <>
                     <div className="w-6 h-6 bg-white/20 rounded-xl flex items-center justify-center">
@@ -161,13 +150,9 @@ const GrabFoodProductList = ({ data }) => {
                 )}
               </button>
             </div>
-            
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
-              <button
-                onClick={copyRestaurantInfo}
-                className="relative bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center space-x-3 shadow-xl transform hover:scale-105"
-              >
+              <button onClick={copyRestaurantInfo} className="relative bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center space-x-3 shadow-xl transform hover:scale-105">
                 {copiedId === 'restaurant' ? (
                   <>
                     <div className="w-6 h-6 bg-white/20 rounded-xl flex items-center justify-center">
@@ -190,57 +175,21 @@ const GrabFoodProductList = ({ data }) => {
               </button>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-4">
-            {/* Duplicate Filter Toggle */}
-            <div className="flex items-center space-x-3">
-              <label className="flex items-center cursor-pointer">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={filterDuplicates}
-                    onChange={(e) => setFilterDuplicates(e.target.checked)}
-                  />
-                  <div className={`block w-14 h-8 rounded-full transition-colors duration-300 ${
-                    filterDuplicates ? 'bg-green-500' : 'bg-gray-600'
-                  }`}>
-                    <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 ${
-                      filterDuplicates ? 'transform translate-x-6' : ''
-                    }`}></div>
-                  </div>
-                </div>
-                <span className="ml-3 text-white font-medium text-sm">Lọc trùng lặp</span>
-              </label>
-              
-              {filterDuplicates && duplicateCount > 0 && (
-                <div className="backdrop-blur-sm bg-orange-500/20 border border-orange-400/30 rounded-2xl px-3 py-1">
-                  <span className="text-orange-400 text-sm font-semibold">
-                    🚫 {duplicateCount} món trùng
-                  </span>
-                </div>
-              )}
-            </div>
-            
-            <div className="backdrop-blur-sm bg-white/10 rounded-2xl px-6 py-3 border border-white/20">
-              <span className="text-white/80 font-medium">Total: </span>
-              <span className="text-white font-bold text-lg">{filteredMenuItems.length}</span>
-              <span className="text-white/60 ml-1">items</span>
-              {filterDuplicates && duplicateCount > 0 && (
-                <span className="text-white/40 ml-2">({menuItems.length} gốc)</span>
-              )}
-            </div>
+          <div className="backdrop-blur-sm bg-white/10 rounded-2xl px-6 py-3 border border-white/20">
+            <span className="text-white/80 font-medium">Total: </span>
+            <span className="text-white font-bold text-lg">{filteredMenuItems.length}</span>
+            <span className="text-white/60 ml-1">items</span>
+            {filterDuplicates && duplicateCount > 0 && <span className="text-white/40 ml-2">({menuItems.length} gốc)</span>}
           </div>
         </div>
       </div>
 
-      {/* Premium Table Header */}
       <div className="backdrop-blur-sm bg-gradient-to-r from-slate-500/10 to-gray-500/10 px-8 py-6 border-b border-white/10">
         <div className="grid grid-cols-3 gap-8">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-400 rounded-2xl flex items-center justify-center shadow-lg">
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
               </svg>
             </div>
             <span className="text-xl font-black text-white">Product Name</span>
@@ -265,35 +214,17 @@ const GrabFoodProductList = ({ data }) => {
         </div>
       </div>
 
-      {/* Products List */}
       <div className="max-h-96 overflow-y-auto">
         {filteredMenuItems.map((product, index) => (
-          <div
-            key={product.id}
-            onClick={() => copyProductInfo(product)}
-            className={`group relative grid grid-cols-3 gap-8 px-8 py-6 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-all duration-300 ${
-              index % 2 === 0 ? 'bg-white/[0.02]' : 'bg-white/[0.05]'
-            } hover:shadow-xl`}
-          >
-            {/* Hover Effect */}
+          <div key={product.id} onClick={() => copyProductInfo(product)} className={`group relative grid grid-cols-3 gap-8 px-8 py-6 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-all duration-300 ${index % 2 === 0 ? 'bg-white/[0.02]' : 'bg-white/[0.05]'} hover:shadow-xl`}>
             <div className="absolute inset-0 bg-gradient-to-r from-green-400/0 via-emerald-400/0 to-cyan-400/0 group-hover:from-green-400/5 group-hover:via-emerald-400/5 group-hover:to-cyan-400/5 transition-all duration-500 rounded-2xl"></div>
-            
-            {/* Product Name Column */}
             <div className="relative flex items-center space-x-4">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg">
-                  {index + 1}
-                </div>
+                <div className="w-12 h-12 bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg">{index + 1}</div>
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-white group-hover:text-emerald-300 transition-colors duration-300 text-lg truncate">
-                  {product.name}
-                </h4>
-                {product.description && product.description !== 'N/A' && (
-                  <p className="text-white/60 text-sm mt-1 line-clamp-2 group-hover:text-white/80 transition-colors duration-300">
-                    {product.description}
-                  </p>
-                )}
+                <h4 className="font-bold text-white group-hover:text-emerald-300 transition-colors duration-300 text-lg truncate">{product.name}</h4>
+                {product.description && product.description !== 'N/A' && <p className="text-white/60 text-sm mt-1 line-clamp-2 group-hover:text-white/80 transition-colors duration-300">{product.description}</p>}
                 {product.modifiers && product.modifiers.length > 0 && (
                   <div className="mt-2">
                     <span className="inline-flex items-center space-x-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
@@ -304,27 +235,16 @@ const GrabFoodProductList = ({ data }) => {
                 )}
               </div>
             </div>
-
-            {/* Category Column */}
             <div className="relative flex items-center">
               <div className="text-center w-full">
-                <span className="text-white/80 font-medium text-sm bg-white/10 px-3 py-1 rounded-lg">
-                  {product.category}
-                </span>
+                <span className="text-white/80 font-medium text-sm bg-white/10 px-3 py-1 rounded-lg">{product.category}</span>
               </div>
             </div>
-            
-            {/* Price Column */}
             <div className="relative flex flex-col items-end justify-center space-y-2">
               <div className="text-right">
-                <div className="text-2xl font-black text-white group-hover:text-emerald-300 transition-colors duration-300">
-                  {formatPrice(product.originalPrice)}
-                </div>
-                <div className={`text-sm ${product.available ? 'text-green-400' : 'text-red-400'}`}>
-                  {product.available ? '✅ Có sẵn' : '❌ Hết hàng'}
-                </div>
+                <div className="text-2xl font-black text-white group-hover:text-emerald-300 transition-colors duration-300">{formatPrice(product.originalPrice)}</div>
+                <div className={`text-sm ${product.available ? 'text-green-400' : 'text-red-400'}`}>{product.available ? '✅ Có sẵn' : '❌ Hết hàng'}</div>
               </div>
-              
               {copiedId === product.id && (
                 <div className="flex items-center space-x-2 text-green-400 text-sm font-bold animate-pulse">
                   <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
@@ -340,7 +260,6 @@ const GrabFoodProductList = ({ data }) => {
         ))}
       </div>
 
-      {/* Premium Footer Instructions */}
       <div className="backdrop-blur-sm bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-cyan-500/10 p-8 border-t border-white/10">
         <div className="flex items-start space-x-6">
           <div className="w-16 h-16 bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 rounded-3xl flex items-center justify-center shadow-2xl flex-shrink-0">
@@ -383,7 +302,7 @@ const GrabFoodProductList = ({ data }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default GrabFoodProductList; 
+export default GrabFoodProductList 

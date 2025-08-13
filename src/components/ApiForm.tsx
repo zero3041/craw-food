@@ -1,33 +1,38 @@
-import { useState } from 'react';
+import { useState } from 'react'
 
-const ApiForm = ({ onSubmit, loading, loadingStep }) => {
-  const [curlCommand, setCurlCommand] = useState('');
-  const [error, setError] = useState('');
+type ApiFormProps = {
+  onSubmit: (curlCommand: string) => void
+  loading: boolean
+  loadingStep: string
+}
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+const ApiForm = ({ onSubmit, loading, loadingStep }: ApiFormProps) => {
+  const [curlCommand, setCurlCommand] = useState('')
+  const [error, setError] = useState('')
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     if (!curlCommand.trim()) {
-      setError('Please enter a cURL command');
-      return;
+      setError('Please enter a cURL command')
+      return
     }
-    setError('');
-    onSubmit(curlCommand);
-  };
+    setError('')
+    onSubmit(curlCommand)
+  }
 
-  const handleInputChange = (e) => {
-    setCurlCommand(e.target.value);
-    if (error) setError('');
-  };
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCurlCommand(e.target.value)
+    if (error) setError('')
+  }
 
   const exampleCurl = `curl 'https://gw.be.com.vn/api/v1/be-marketplace/web/restaurant/detail' \\
   -H 'accept: */*' \\
   -H 'accept-language: vi' \\
   -H 'authorization: Bearer your-token' \\
-  --data-raw '{"restaurant_id":"77744","locale":"vi"}'`;
+  --data-raw '{"restaurant_id":"77744","locale":"vi"}'`
 
   return (
     <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl shadow-2xl overflow-hidden mb-12">
-      {/* Premium Header */}
       <div className="bg-gradient-to-r from-emerald-500/20 via-cyan-500/20 to-purple-500/20 backdrop-blur-sm p-8 border-b border-white/10">
         <div className="flex items-center space-x-6">
           <div className="relative">
@@ -41,12 +46,8 @@ const ApiForm = ({ onSubmit, loading, loadingStep }) => {
             </div>
           </div>
           <div className="flex-1">
-            <h2 className="text-3xl font-black text-white mb-2">
-              🚀 API Data Extractor
-            </h2>
-            <p className="text-white/80 text-lg">
-              Paste your cURL command and extract structured data instantly
-            </p>
+            <h2 className="text-3xl font-black text-white mb-2">🚀 API Data Extractor</h2>
+            <p className="text-white/80 text-lg">Paste your cURL command and extract structured data instantly</p>
           </div>
           <div className="hidden lg:flex items-center space-x-4">
             <div className="backdrop-blur-sm bg-white/10 rounded-2xl px-4 py-2 border border-white/20">
@@ -55,8 +56,7 @@ const ApiForm = ({ onSubmit, loading, loadingStep }) => {
           </div>
         </div>
       </div>
-      
-      {/* Form Content */}
+
       <div className="p-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-4">
@@ -68,7 +68,7 @@ const ApiForm = ({ onSubmit, loading, loadingStep }) => {
               </div>
               Enter cURL Command
             </label>
-            
+
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-cyan-400 to-purple-400 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
               <div className="relative">
@@ -81,14 +81,12 @@ const ApiForm = ({ onSubmit, loading, loadingStep }) => {
                   disabled={loading}
                 />
                 <div className="absolute top-4 right-4 flex items-center space-x-2">
-                  <div className="backdrop-blur-sm bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-xl text-xs font-bold border border-emerald-400/30">
-                    cURL
-                  </div>
+                  <div className="backdrop-blur-sm bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-xl text-xs font-bold border border-emerald-400/30">cURL</div>
                   <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-start space-x-3 text-white/60">
               <div className="w-6 h-6 bg-cyan-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <svg className="w-3 h-3 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
@@ -100,13 +98,13 @@ const ApiForm = ({ onSubmit, loading, loadingStep }) => {
               </p>
             </div>
           </div>
-          
+
           {error && (
             <div className="backdrop-blur-md bg-red-500/10 border border-red-500/30 rounded-2xl p-6 shadow-xl">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
                   <svg className="h-6 w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l-2.293-2.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <div>
@@ -116,7 +114,7 @@ const ApiForm = ({ onSubmit, loading, loadingStep }) => {
               </div>
             </div>
           )}
-          
+
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-cyan-400 to-purple-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
             <button
@@ -134,9 +132,7 @@ const ApiForm = ({ onSubmit, loading, loadingStep }) => {
                   </div>
                   <div className="flex flex-col items-center">
                     <span className="text-lg font-bold">Processing Request...</span>
-                    {loadingStep && (
-                      <span className="text-sm text-white/80 mt-1">{loadingStep}</span>
-                    )}
+                    {loadingStep && <span className="text-sm text-white/80 mt-1">{loadingStep}</span>}
                   </div>
                 </>
               ) : (
@@ -152,19 +148,16 @@ const ApiForm = ({ onSubmit, loading, loadingStep }) => {
             </button>
           </div>
         </form>
-        
-        {/* Advanced Tips Section */}
+
         <div className="mt-8 backdrop-blur-sm bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-white/10">
           <div className="flex items-start space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-400 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-400 rounded-2xl flex items-center justify-center shadow-2xl flex-shrink-0">
               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M9.663 17h4.673a1.5 1.5 0 001.2-2.4l-2.336-3.115a1.5 1.5 0 00-2.4 0L8.463 14.6A1.5 1.5 0 009.663 17zM12 5a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-white mb-3 text-lg flex items-center">
-                💡 Advanced Usage Guide
-              </h3>
+              <h3 className="font-bold textWhite mb-3 text-lg flex items-center">💡 Advanced Usage Guide</h3>
               <div className="grid md:grid-cols-2 gap-6 text-sm text-white/80">
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3">
@@ -212,7 +205,7 @@ const ApiForm = ({ onSubmit, loading, loadingStep }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ApiForm; 
+export default ApiForm 
