@@ -34,12 +34,29 @@ type Props = {
 
 const ProductList = ({ data }: Props) => {
   const [copiedId, setCopiedId] = useState<string | number | null>(null)
+  const [filterDuplicates, setFilterDuplicates] = useState(false)
 
   if (!data || !data.products || data.products.length === 0) {
     return null
   }
 
   const { products, restaurantInfo, currency } = data
+
+  const filteredProducts = (() => {
+    if (!filterDuplicates) return products
+    const unique: Product[] = []
+    const seen = new Set<string>()
+    for (const p of products) {
+      const key = (p.name || '').toLowerCase().trim()
+      if (!seen.has(key)) {
+        seen.add(key)
+        unique.push(p)
+      }
+    }
+    return unique
+  })()
+
+  const duplicateCount = filterDuplicates ? Math.max(0, products.length - filteredProducts.length) : 0
 
   const copyToClipboard = async (text: string, id: string | number) => {
     try {
@@ -61,7 +78,7 @@ const ProductList = ({ data }: Props) => {
   }
 
   const copyAllProducts = () => {
-    const allText = products.map((product) => `${product.name}\t${formatPrice(product.displayPrice)}`).join('\n')
+    const allText = filteredProducts.map((product) => `${product.name}\t${formatPrice(product.displayPrice)}`).join('\n')
     copyToClipboard(allText, 'all')
   }
 
@@ -130,16 +147,33 @@ const ProductList = ({ data }: Props) => {
                         <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                       </svg>
                     </div>
-                    <span>Copy All ({products.length})</span>
+                    <span>Copy All ({filteredProducts.length})</span>
                   </>
                 )}
+              </button>
+            </div>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
+              <button
+                onClick={() => setFilterDuplicates((v) => !v)}
+                className={`relative px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center space-x-3 shadow-xl transform hover:scale-105 ${
+                  filterDuplicates ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                <div className="w-6 h-6 bg-white/20 rounded-xl flex items-center justify-center">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M6 3a1 1 0 00-1 1v1H4a1 1 0 000 2h1v6H4a1 1 0 100 2h1v1a1 1 0 102 0v-1h6v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7h1a1 1 0 100-2h-1V4a1 1 0 10-2 0v1H7V4a1 1 0 00-1-1zm1 4v6h6V7H7z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>Lọc trùng lặp {duplicateCount > 0 && filterDuplicates ? `(-${duplicateCount})` : ''}</span>
               </button>
             </div>
           </div>
           <div className="backdrop-blur-sm bg-white/10 rounded-2xl px-6 py-3 border border-white/20">
             <span className="text-white/80 font-medium">Total: </span>
-            <span className="text-white font-bold text-lg">{products.length}</span>
+            <span className="text-white font-bold text-lg">{filteredProducts.length}</span>
             <span className="text-white/60 ml-1">items</span>
+            {filterDuplicates && duplicateCount > 0 && <span className="text-white/40 ml-2">({products.length} gốc)</span>}
           </div>
         </div>
       </div>
@@ -167,7 +201,7 @@ const ProductList = ({ data }: Props) => {
       </div>
 
       <div className="max-h-96 overflow-y-auto">
-        {products.map((product, index) => (
+        {filteredProducts.map((product, index) => (
           <div
             key={product.id}
             onClick={() => copyProductInfo(product)}
