@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Be Food API</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Test Be Food API via Proxy</h1>
+    <button onclick="testGuestToken()">Test Guest Token</button>
+    <button onclick="testRestaurantAPI()">Test Restaurant API</button>
+    <div id="output"></div>
+
+    <script>
+        async function testGuestToken() {
+            try {
+                const response = await axios.post('http://localhost:3001/proxy', {
+                    url: 'https://gw.be.com.vn/api/v1/be-delivery-gateway/api/v1/user/guest',
+                    method: 'POST',
+                    headers: {
+                        'accept': '*/*',
+                        'accept-language': 'vi',
+                        'content-type': 'application/json'
+                    },
+                    data: '{}'
+                });
+                
+                document.getElementById('output').innerHTML = '<h3>Guest Token Result:</h3><pre>' + JSON.stringify(response.data, null, 2) + '</pre>';
+                window.accessToken = response.data.data.access_token;
+                console.log('Access token saved:', window.accessToken);
+            } catch (error) {
+                document.getElementById('output').innerHTML = '<h3>Error:</h3><pre>' + error.message + '</pre>';
+            }
+        }
+
+        async function testRestaurantAPI() {
+            if (!window.accessToken) {
+                alert('Please get guest token first');
+                return;
+            }
+
+            try {
+                const restaurantData = {
+                    restaurant_id: "84166",
+                    locale: "vi",
+                    app_version: "11296",
+                    version: "1.1.296",
+                    device_type: 3,
+                    operator_token: "0b28e008bc323838f5ec84f718ef11e6",
+                    customer_package_name: "xyz.be.food",
+                    device_token: "a0e09f4206cef88dab92b93072e25747",
+                    ad_id: "",
+                    screen_width: 360,
+                    screen_height: 640,
+                    client_info: {
+                        locale: "vi",
+                        app_version: "11296",
+                        version: "1.1.296",
+                        device_type: 3,
+                        operator_token: "0b28e008bc323838f5ec84f718ef11e6",
+                        customer_package_name: "xyz.be.food",
+                        device_token: "a0e09f4206cef88dab92b93072e25747",
+                        ad_id: "",
+                        screen_width: 360,
+                        screen_height: 640
+                    },
+                    latitude: 20.997957,
+                    longitude: 105.794586
+                };
+
+                const response = await axios.post('http://localhost:3001/proxy', {
+                    url: 'https://gw.be.com.vn/api/v1/be-marketplace/web/restaurant/detail',
+                    method: 'POST',
+                    headers: {
+                        'accept': '*/*',
+                        'accept-language': 'vi',
+                        'appversion': '11296',
+                        'authorization': 'Bearer ' + window.accessToken,
+                        'content-type': 'application/json'
+                    },
+                    data: JSON.stringify(restaurantData)
+                });
+                
+                document.getElementById('output').innerHTML = '<h3>Restaurant Data Result:</h3><pre>' + JSON.stringify(response.data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('output').innerHTML = '<h3>Error:</h3><pre>' + error.message + '</pre>';
+            }
+        }
+    </script>
+</body>
+</html>

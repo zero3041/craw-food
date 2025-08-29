@@ -17,49 +17,33 @@ type AllOriginsResponse = {
 
 type RequestResult<T> = T
 
-export const makeApiRequest = async <T = unknown>(requestConfig: RequestConfig): Promise<T> => {
-  try {
-    const { url, method = 'GET', headers, data } = requestConfig
+export async function makeApiRequest(config: AxiosRequestConfig): Promise<any> {
+  const methods = [
+    // Try local proxy first (skip direct call to avoid CORS logs)
+    () => axios.post('http://localhost:3001/proxy', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data
+    }),
+    
+    // Fallback to external proxy (if needed)
+    () => axios.post('https://api.allorigins.win/raw', {
+      url: config.url,
+      method: config.method || 'GET',
+      headers: config.headers,
+      data: config.data
+    })
+  ];
 
+  for (let i = 0; i < methods.length; i++) {
     try {
-      const config: AxiosRequestConfig = {
-        method: method.toLowerCase() as AxiosRequestConfig['method'],
-        url,
-        headers: {
-          ...headers,
-          'sec-ch-ua': undefined,
-          'sec-ch-ua-mobile': undefined,
-          'sec-ch-ua-platform': undefined,
-          'sec-fetch-dest': undefined,
-          'sec-fetch-mode': undefined,
-          'sec-fetch-site': undefined,
-        },
-        timeout: 8000,
+      const response = await methods[i]();
+      return response.data;
+    } catch (error: any) {
+      if (i === methods.length - 1) {
+        throw error;
       }
-
-      if (data && (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT')) {
-        config.data = data
-      }
-
-      const response = await axios(config)
-      return response.data as T
-    } catch (directError: any) {
-      try {
-        return await makeLocalProxyRequest<T>(requestConfig)
-      } catch (localProxyError: any) {
-        return await makeExternalProxyRequest<T>(requestConfig)
-      }
-    }
-  } catch (error: any) {
-    if (error.code === 'ECONNABORTED') {
-      throw new Error('Request timeout - API took too long to respond')
-    }
-    if (error.response) {
-      throw new Error(`API Error: ${error.response.status} - ${error.response.statusText}`)
-    } else if (error.request) {
-      throw new Error('Network connection failed. Please check your internet connection and try again.')
-    } else {
-      throw new Error(`Request Error: ${error.message}`)
     }
   }
 }
