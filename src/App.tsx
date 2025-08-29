@@ -133,7 +133,6 @@ function App() {
                     </div>
                   </div>
                 </div>
-                <DemoData />
               </div>
             )}
           </>
@@ -185,7 +184,7 @@ function App() {
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="flex space-x-1 py-4">
               <button onClick={() => setActiveTab('api')} className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'api' ? 'bg-white/20 text-white shadow-lg border border-white/20' : 'text-white/70 hover:text-white hover:bg-white/10'}`}>
-                🌐 API Extractor
+                🐝 Be Food
               </button>
               <button onClick={() => setActiveTab('grab')} className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'grab' ? 'bg-white/20 text-white shadow-lg border border-white/20' : 'text-white/70 hover:text-white hover:bg-white/10'}`}>
                 🍽️ Grab Food Scraper

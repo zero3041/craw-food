@@ -44,14 +44,14 @@ const GrabFoodScraper = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!restaurantIds.trim()) {
-      setError('Vui lòng nhập ID nhà hàng!')
+      setError('Please enter restaurant ID!')
       return
     }
 
     setLoading(true)
     setError('')
     setResults([])
-    setLoadingStep('Đang xử lý danh sách ID...')
+    setLoadingStep('Processing ID list...')
 
     try {
       let ids: string[] = []
@@ -62,10 +62,10 @@ const GrabFoodScraper = () => {
       }
 
       if (ids.length === 0) {
-        throw new Error('Không có ID hợp lệ nào được nhập!')
+        throw new Error('No valid IDs entered!')
       }
 
-      setLoadingStep(`Bắt đầu lấy dữ liệu cho ${ids.length} nhà hàng...`)
+      setLoadingStep(`Starting data fetch for ${ids.length} restaurants...`)
 
       const allResults: FetchResult[] = []
       let successful = 0
@@ -73,7 +73,7 @@ const GrabFoodScraper = () => {
 
       for (let i = 0; i < ids.length; i++) {
         const id = ids[i]
-        setLoadingStep(`Đang lấy dữ liệu: ${id} (${i + 1}/${ids.length})`)
+        setLoadingStep(`Fetching data: ${id} (${i + 1}/${ids.length})`)
         const result = await fetchRestaurantData(id)
         allResults.push(result)
         if (result.success) successful++
@@ -82,7 +82,7 @@ const GrabFoodScraper = () => {
       }
 
       setResults(allResults)
-      setLoadingStep(`Hoàn thành! Thành công: ${successful}, Thất bại: ${failed}`)
+      setLoadingStep(`Complete! Success: ${successful}, Failed: ${failed}`)
     } catch (err: any) {
       setError(err.message)
       setLoadingStep('')
@@ -132,7 +132,7 @@ const GrabFoodScraper = () => {
 
       return { ...basicInfo, menuItems, totalMenuItems: menuItems.length }
     } catch (error) {
-      return { error: 'Không thể trích xuất thông tin' }
+      return { error: 'Unable to extract information' }
     }
   }
 
@@ -179,7 +179,7 @@ const GrabFoodScraper = () => {
             </div>
             <div>
               <h2 className="text-3xl font-black text-white">🍽️ Grab Food Data Scraper</h2>
-              <p className="text-white/70 text-lg">Cào dữ liệu nhà hàng và menu từ Grab Food API</p>
+              <p className="text-white/70 text-lg">Scrape restaurant and menu data from Grab Food API</p>
             </div>
           </div>
         </div>
@@ -187,33 +187,33 @@ const GrabFoodScraper = () => {
         <div className="mb-6">
           <div className="flex space-x-4 mb-4">
             <button onClick={() => setInputMethod('manual')} className={`px-4 py-2 rounded-xl font-semibold transition-all ${inputMethod === 'manual' ? 'bg-green-500 text-white shadow-lg' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
-              📝 Nhập thủ công
+              📝 Manual Input
             </button>
             <button onClick={() => setInputMethod('file')} className={`px-4 py-2 rounded-xl font-semibold transition-all ${inputMethod === 'file' ? 'bg-green-500 text-white shadow-lg' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
-              📁 Từ file text
+              📁 From Text File
             </button>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="mb-8">
           <div className="mb-6">
-            <label className="block text-white font-semibold mb-3 text-lg">{inputMethod === 'manual' ? 'ID nhà hàng (phân cách bằng dấu phẩy):' : 'Nội dung file:'}</label>
+            <label className="block text-white font-semibold mb-3 text-lg">{inputMethod === 'manual' ? 'Restaurant IDs (separated by commas):' : 'File Content:'}</label>
             {inputMethod === 'manual' ? (
-              <input type="text" value={restaurantIds} onChange={(e) => setRestaurantIds(e.target.value)} placeholder="Ví dụ: SGDD04938, 4-C7CAVJV3HB2KWA" className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+              <input type="text" value={restaurantIds} onChange={(e) => setRestaurantIds(e.target.value)} placeholder="Example: SGDD04938, 4-C7CAVJV3HB2KWA" className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
             ) : (
-              <textarea value={restaurantIds} onChange={(e) => setRestaurantIds(e.target.value)} placeholder="Nhập từng ID trên một dòng..." rows={4} className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none" />
+              <textarea value={restaurantIds} onChange={(e) => setRestaurantIds(e.target.value)} placeholder="Enter each ID on a separate line..." rows={4} className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none" />
             )}
-            <p className="text-white/60 text-sm mt-2">💡 {inputMethod === 'manual' ? 'Nhập ID nhà hàng, phân cách bằng dấu phẩy' : 'Nhập từng ID trên một dòng riêng biệt'}</p>
+            <p className="text-white/60 text-sm mt-2">💡 {inputMethod === 'manual' ? 'Enter restaurant IDs separated by commas' : 'Enter each ID on a separate line'}</p>
           </div>
 
           <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
             {loading ? (
               <div className="flex items-center justify-center space-x-3">
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Đang cào dữ liệu...</span>
+                <span>Scraping data...</span>
               </div>
             ) : (
-              '🚀 Bắt đầu cào dữ liệu'
+              '🚀 Start Scraping Data'
             )}
           </button>
         </form>
@@ -227,7 +227,7 @@ const GrabFoodScraper = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="text-white font-semibold">Đang xử lý...</h3>
+                <h3 className="text-white font-semibold">Processing...</h3>
                 <p className="text-white/70">{loadingStep}</p>
               </div>
             </div>
@@ -243,7 +243,7 @@ const GrabFoodScraper = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="text-red-200 font-semibold">Lỗi</h3>
+                <h3 className="text-red-200 font-semibold">Error</h3>
                 <p className="text-red-200">{error}</p>
               </div>
             </div>
@@ -252,13 +252,13 @@ const GrabFoodScraper = () => {
 
         {!loading && results.length === 0 && !error && (
           <div className="backdrop-blur-sm bg-white/5 rounded-2xl p-6 border border-white/10">
-            <h3 className="text-white font-semibold mb-3 text-lg">📖 Hướng dẫn sử dụng:</h3>
+            <h3 className="text-white font-semibold mb-3 text-lg">📖 Usage Guide:</h3>
             <div className="space-y-2 text-white/70 text-sm">
-              <p>1. Chọn cách nhập ID nhà hàng (thủ công hoặc từ file)</p>
-              <p>2. Nhập ID nhà hàng Grab Food (có thể tìm từ URL hoặc API)</p>
-              <p>3. Nhấn "🚀 Bắt đầu cào dữ liệu" để lấy thông tin chi tiết</p>
-              <p>4. Dữ liệu sẽ được hiển thị và có thể tải xuống dưới dạng JSON</p>
-              <p>5. Thông tin bao gồm: thông tin nhà hàng, menu, giá cả, mô tả</p>
+              <p>1. Choose input method (manual or from file)</p>
+              <p>2. Enter Grab Food restaurant IDs (can be found from URL or API)</p>
+              <p>3. Click "🚀 Start Scraping Data" to get detailed information</p>
+              <p>4. Data will be displayed and can be downloaded as JSON</p>
+              <p>5. Information includes: restaurant details, menu, prices, descriptions</p>
             </div>
           </div>
         )}
@@ -267,8 +267,8 @@ const GrabFoodScraper = () => {
       {results.length > 0 && (
         <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-white">📊 Kết quả ({results.length} nhà hàng)</h3>
-            <button onClick={downloadResults} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-xl font-semibold transition-all">💾 Tải xuống JSON</button>
+            <h3 className="text-2xl font-bold text-white">📊 Results ({results.length} restaurants)</h3>
+            <button onClick={downloadResults} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-xl font-semibold transition-all">💾 Download JSON</button>
           </div>
 
           <div className="grid gap-6">
@@ -303,23 +303,23 @@ const GrabFoodScraper = () => {
                       return (
                         <div className="grid md:grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <div className="flex justify-between"><span className="text-white/70">Tên:</span><span className="text-white font-medium">{i.name}</span></div>
-                            <div className="flex justify-between"><span className="text-white/70">Ẩm thực:</span><span className="text-white font-medium">{i.cuisine}</span></div>
-                            <div className="flex justify-between"><span className="text-white/70">Địa chỉ:</span><span className="text-white font-medium">{i.address}</span></div>
+                            <div className="flex justify-between"><span className="text-white/70">Name:</span><span className="text-white font-medium">{i.name}</span></div>
+                            <div className="flex justify-between"><span className="text-white/70">Cuisine:</span><span className="text-white font-medium">{i.cuisine}</span></div>
+                            <div className="flex justify-between"><span className="text-white/70">Address:</span><span className="text-white font-medium">{i.address}</span></div>
                             <div className="flex justify-between"><span className="text-white/70">Rating:</span><span className="text-white font-medium">{i.rating}</span></div>
                           </div>
                           <div className="space-y-2">
                             <div className="flex justify-between"><span className="text-white/70">ETA:</span><span className="text-white font-medium">{i.eta}</span></div>
-                            <div className="flex justify-between"><span className="text-white/70">Khoảng cách:</span><span className="text-white font-medium">{i.distanceInKm} km</span></div>
-                            <div className="flex justify-between"><span className="text-white/70">Phí giao hàng:</span><span className="text-white font-medium">{i.estimatedDeliveryFee?.priceDisplay || 'N/A'}</span></div>
-                            <div className="flex justify-between"><span className="text-white/70">Tổng món:</span><span className="text-white font-medium">{i.totalMenuItems} món</span></div>
+                            <div className="flex justify-between"><span className="text-white/70">Distance:</span><span className="text-white font-medium">{i.distanceInKm} km</span></div>
+                            <div className="flex justify-between"><span className="text-white/70">Delivery fee:</span><span className="text-white font-medium">{i.estimatedDeliveryFee?.priceDisplay || 'N/A'}</span></div>
+                            <div className="flex justify-between"><span className="text-white/70">Total items:</span><span className="text-white font-medium">{i.totalMenuItems} items</span></div>
                           </div>
                         </div>
                       )
                     })()}
                   </div>
                 ) : (
-                  <p className="text-red-200">Lỗi: {result.error}</p>
+                  <p className="text-red-200">Error: {result.error}</p>
                 )}
               </div>
             ))}
