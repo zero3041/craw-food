@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import BeFoodScraper from '@/components/BeFoodScraper'
 import GrabFoodScraper from '@/components/GrabFoodScraper'
+import ShopeeFoodScraper from '@/components/ShopeeFoodScraper'
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'be' | 'grab'>('be')
+  const [activeTab, setActiveTab] = useState<'be' | 'grab' | 'shopee'>('be')
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -11,6 +12,8 @@ function App() {
         return <BeFoodScraper />
       case 'grab':
         return <GrabFoodScraper />
+      case 'shopee':
+        return <ShopeeFoodScraper />
       default:
         return null
     }
@@ -60,6 +63,9 @@ function App() {
               </button>
               <button onClick={() => setActiveTab('grab')} className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'grab' ? 'bg-white/20 text-white shadow-lg border border-white/20' : 'text-white/70 hover:text-white hover:bg-white/10'}`}>
                 🍽️ Grab Food Scraper
+              </button>
+              <button onClick={() => setActiveTab('shopee')} className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'shopee' ? 'bg-white/20 text-white shadow-lg border border-white/20' : 'text-white/70 hover:text-white hover:bg-white/10'}`}>
+                🛵 Shopee Food
               </button>
             </div>
           </div>

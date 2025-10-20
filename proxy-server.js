@@ -21,17 +21,29 @@ app.all('/proxy', async (req, res) => {
 
     console.log(`🚀 Proxying ${method} request to: ${url}`);
     
-    // Clean headers - remove problematic ones
+    // Clean headers - remove problematic ones but keep essential ones
     const cleanHeaders = { ...headers };
     delete cleanHeaders['host'];
-    delete cleanHeaders['origin'];
-    delete cleanHeaders['referer'];
+    // Keep origin, referer for Shopee Food API
+    // delete cleanHeaders['origin'];
+    // delete cleanHeaders['referer'];
     delete cleanHeaders['sec-ch-ua'];
     delete cleanHeaders['sec-ch-ua-mobile'];
     delete cleanHeaders['sec-ch-ua-platform'];
     delete cleanHeaders['sec-fetch-dest'];
     delete cleanHeaders['sec-fetch-mode'];
     delete cleanHeaders['sec-fetch-site'];
+
+    // Ensure essential headers are present
+    if (!cleanHeaders['user-agent']) {
+      cleanHeaders['user-agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36';
+    }
+    if (!cleanHeaders['accept']) {
+      cleanHeaders['accept'] = 'application/json, text/plain, */*';
+    }
+    if (!cleanHeaders['accept-language']) {
+      cleanHeaders['accept-language'] = 'vi';
+    }
 
     const config = {
       method: method.toLowerCase(),

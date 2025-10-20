@@ -21,7 +21,7 @@ const GrabFoodScraper = () => {
   const [inputMethod, setInputMethod] = useState<'manual' | 'file' | 'existing'>('manual')
 
   const fetchRestaurantData = async (id: string): Promise<FetchResult> => {
-    const url = `https://portal.grab.com/foodweb/v2/merchants/${id}`
+    const url = `https://portal.grab.com/foodweb/v2/merchants/${id}?latlng=10.762622,106.660172&countryCode=VN`
     try {
       const requestConfig = {
         url,
@@ -29,12 +29,14 @@ const GrabFoodScraper = () => {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
           Accept: 'application/json',
-          'Accept-Language': 'en-US,en;q=0.9',
-          Referer: 'https://food.grab.com/',
+          'Accept-Language': 'vi-VN,vi;q=0.9,en;q=0.8',
+          Referer: 'https://food.grab.com/vn/vi/',
           Origin: 'https://food.grab.com',
+          'X-Country-Code': 'VN',
+          'X-Locale': 'vi-VN',
         } as Record<string, string>,
       }
-      const data = await makeApiRequest<GrabMerchantResponse>(requestConfig)
+      const data = await makeApiRequest(requestConfig)
       return { id, data, success: true }
     } catch (error: any) {
       return { id, error: error.message, success: false }

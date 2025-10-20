@@ -18,33 +18,22 @@ type AllOriginsResponse = {
 type RequestResult<T> = T
 
 export async function makeApiRequest(config: AxiosRequestConfig): Promise<any> {
-  const methods = [
-    // Try local proxy first (skip direct call to avoid CORS logs)
-    () => axios.post('http://localhost:3001/proxy', {
+  try {
+    console.log('🚀 Making API request via local proxy:', config.url)
+    
+    const response = await axios.post('http://localhost:3001/proxy', {
       url: config.url,
       method: config.method,
       headers: config.headers,
       data: config.data
-    }),
-    
-    // Fallback to external proxy (if needed)
-    () => axios.post('https://api.allorigins.win/raw', {
-      url: config.url,
-      method: config.method || 'GET',
-      headers: config.headers,
-      data: config.data
     })
-  ];
-
-  for (let i = 0; i < methods.length; i++) {
-    try {
-      const response = await methods[i]();
-      return response.data;
-    } catch (error: any) {
-      if (i === methods.length - 1) {
-        throw error;
-      }
-    }
+    
+    console.log('✅ API request successful:', response.status)
+    return response.data
+  } catch (error: any) {
+    console.error('❌ API request failed:', error.response?.status, error.response?.statusText)
+    console.error('❌ Error details:', error.response?.data)
+    throw error
   }
 }
 
