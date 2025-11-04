@@ -21,36 +21,27 @@ app.all('/proxy', async (req, res) => {
 
     console.log(`🚀 Proxying ${method} request to: ${url}`);
     
-    // Clean headers - remove problematic ones but keep essential ones
-    const cleanHeaders = { ...headers };
-    delete cleanHeaders['host'];
-    // Keep origin, referer for Shopee Food API
-    // delete cleanHeaders['origin'];
-    // delete cleanHeaders['referer'];
-    delete cleanHeaders['sec-ch-ua'];
-    delete cleanHeaders['sec-ch-ua-mobile'];
-    delete cleanHeaders['sec-ch-ua-platform'];
-    delete cleanHeaders['sec-fetch-dest'];
-    delete cleanHeaders['sec-fetch-mode'];
-    delete cleanHeaders['sec-fetch-site'];
-
-    // Ensure essential headers are present
-    if (!cleanHeaders['user-agent']) {
-      cleanHeaders['user-agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36';
+    // Đơn giản hóa headers - chỉ giữ lại những gì cần thiết
+    const cleanHeaders = {};
+    
+    // Chỉ copy một số headers cơ bản
+    if (headers['accept']) {
+      cleanHeaders['accept'] = headers['accept'];
     }
-    if (!cleanHeaders['accept']) {
-      cleanHeaders['accept'] = 'application/json, text/plain, */*';
+    if (headers['accept-language']) {
+      cleanHeaders['accept-language'] = headers['accept-language'];
     }
-    if (!cleanHeaders['accept-language']) {
-      cleanHeaders['accept-language'] = 'vi';
-    }
+    
+    // Không thêm User-Agent mặc định - để Node.js tự động xử lý
+    
+    console.log('📤 Request headers:', JSON.stringify(cleanHeaders, null, 2));
 
     const config = {
       method: method.toLowerCase(),
       url,
       headers: cleanHeaders,
-      timeout: 30000, // 30 second timeout
-      validateStatus: () => true, // Accept all status codes
+      timeout: 30000,
+      validateStatus: () => true,
     };
 
     if (data && (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT')) {
@@ -60,6 +51,10 @@ app.all('/proxy', async (req, res) => {
     const response = await axios(config);
     
     console.log(`✅ Proxy response: ${response.status} ${response.statusText}`);
+    
+    if (response.status === 403) {
+      console.log('⚠️  403 Forbidden - Response data:', response.data);
+    }
     
     // Return response with CORS headers
     res.status(response.status).json({

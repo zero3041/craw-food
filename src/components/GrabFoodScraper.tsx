@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { makeApiRequest } from '@/utils/apiService'
 import GrabFoodProductList from '@/components/GrabFoodProductList'
+import GrabFoodJsonImporter from '@/components/GrabFoodJsonImporter'
 
 type FetchResult = { id: string; data?: any; success: boolean; error?: string }
 
@@ -19,25 +20,34 @@ const GrabFoodScraper = () => {
   const [error, setError] = useState('')
   const [loadingStep, setLoadingStep] = useState('')
   const [inputMethod, setInputMethod] = useState<'manual' | 'file' | 'existing'>('manual')
+  const [activeMode, setActiveMode] = useState<'scraper' | 'json-import'>('scraper')
 
   const fetchRestaurantData = async (id: string): Promise<FetchResult> => {
     const url = `https://portal.grab.com/foodweb/v2/merchants/${id}?latlng=10.762622,106.660172&countryCode=VN`
     try {
-      const requestConfig = {
-        url,
-        method: 'GET',
+      // Dùng proxy vì CORS, nhưng với headers tối giản
+      const response = await fetch('http://localhost:3001/proxy', {
+        method: 'POST',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          Accept: 'application/json',
-          'Accept-Language': 'vi-VN,vi;q=0.9,en;q=0.8',
-          Referer: 'https://food.grab.com/vn/vi/',
-          Origin: 'https://food.grab.com',
-          'X-Country-Code': 'VN',
-          'X-Locale': 'vi-VN',
-        } as Record<string, string>,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url,
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Accept-Language': 'vi',
+          },
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${response.status}`)
       }
-      const data = await makeApiRequest(requestConfig)
-      return { id, data, success: true }
+
+      const result = await response.json()
+      return { id, data: result.data, success: true }
     } catch (error: any) {
       return { id, error: error.message, success: false }
     }
@@ -171,7 +181,38 @@ const GrabFoodScraper = () => {
 
   return (
     <div className="space-y-8">
-      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
+      {/* Mode Selector */}
+      <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-6 shadow-2xl">
+        <div className="flex space-x-4">
+          <button
+            onClick={() => setActiveMode('scraper')}
+            className={`flex-1 px-6 py-4 rounded-2xl font-semibold transition-all ${
+              activeMode === 'scraper'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            🔍 API Scraper
+          </button>
+          <button
+            onClick={() => setActiveMode('json-import')}
+            className={`flex-1 px-6 py-4 rounded-2xl font-semibold transition-all ${
+              activeMode === 'json-import'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            📋 Import JSON
+          </button>
+        </div>
+      </div>
+
+      {/* Render content based on active mode */}
+      {activeMode === 'json-import' ? (
+        <GrabFoodJsonImporter />
+      ) : (
+        <>
+          <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
         <div className="mb-8">
           <div className="flex items-center space-x-4 mb-6">
             <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -335,6 +376,8 @@ const GrabFoodScraper = () => {
         if ((info as any).error || !info.menuItems || info.menuItems.length === 0) return null
         return <GrabFoodProductList key={`products-${index}`} data={info} />
       })}
+        </>
+      )}
     </div>
   )
 }

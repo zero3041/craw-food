@@ -11,6 +11,7 @@ type Props = { data: Data }
 const GrabFoodProductList = ({ data }: Props) => {
   const [copiedId, setCopiedId] = useState<string | number | null>(null)
   const [filterDuplicates, setFilterDuplicates] = useState(false)
+  const [filterUnavailable, setFilterUnavailable] = useState(false)
 
   const hasMenu = !!data && Array.isArray(data.menuItems) && data.menuItems.length > 0
 
@@ -18,10 +19,19 @@ const GrabFoodProductList = ({ data }: Props) => {
   const { name, address, rating, eta, distanceInKm, estimatedDeliveryFee } = data || ({} as any)
 
   const filteredMenuItems = useMemo(() => {
-    if (!filterDuplicates) return menuItems
+    let items = menuItems
+
+    // Filter out unavailable items if enabled - only show items with available === true
+    if (filterUnavailable) {
+      items = items.filter((item) => item.available === true)
+    }
+
+    // Filter duplicates if enabled
+    if (!filterDuplicates) return items
+    
     const uniqueItems: MenuItem[] = []
     const seenNames = new Set<string>()
-    menuItems.forEach((item) => {
+    items.forEach((item) => {
       const normalizedName = (item.name || '').toLowerCase().trim()
       if (!seenNames.has(normalizedName)) {
         seenNames.add(normalizedName)
@@ -29,7 +39,7 @@ const GrabFoodProductList = ({ data }: Props) => {
       }
     })
     return uniqueItems
-  }, [menuItems, filterDuplicates])
+  }, [menuItems, filterDuplicates, filterUnavailable])
 
   const duplicateCount = useMemo(() => {
     if (!filterDuplicates) return 0
@@ -42,6 +52,10 @@ const GrabFoodProductList = ({ data }: Props) => {
     })
     return duplicates
   }, [menuItems, filterDuplicates])
+
+  const unavailableCount = useMemo(() => {
+    return menuItems.filter((item) => item.available !== true).length
+  }, [menuItems])
 
   const copyToClipboard = async (text: string, id: string | number) => {
     try {
@@ -166,12 +180,30 @@ const GrabFoodProductList = ({ data }: Props) => {
                 <span>Lọc trùng lặp {duplicateCount > 0 && filterDuplicates ? `(-${duplicateCount})` : ''}</span>
               </button>
             </div>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-orange-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
+              <button
+                onClick={() => setFilterUnavailable((v) => !v)}
+                className={`relative px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center space-x-3 shadow-2xl transform hover:scale-105 ${
+                  filterUnavailable ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                <div className="w-6 h-6 bg-white/20 rounded-xl flex items-center justify-center">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span>Ẩn món hết {unavailableCount > 0 && filterUnavailable ? `(-${unavailableCount})` : ''}</span>
+              </button>
+            </div>
           </div>
           <div className="backdrop-blur-sm bg-white/10 rounded-2xl px-6 py-3 border border-white/20">
             <span className="text-white/80 font-medium">Total: </span>
             <span className="text-white font-bold text-lg">{filteredMenuItems.length}</span>
             <span className="text-white/60 ml-1">items</span>
-            {filterDuplicates && duplicateCount > 0 && <span className="text-white/40 ml-2">({menuItems.length} gốc)</span>}
+            {(filterDuplicates && duplicateCount > 0) || (filterUnavailable && unavailableCount > 0) ? (
+              <span className="text-white/40 ml-2">({menuItems.length} gốc)</span>
+            ) : null}
           </div>
         </div>
       </div>
